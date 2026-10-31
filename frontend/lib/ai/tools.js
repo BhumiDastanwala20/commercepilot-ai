@@ -1,4 +1,4 @@
-import { store } from "../store";
+import { listProducts, getProduct, addOrder, newOrderId } from "../store";
 import { checkDiscount } from "../policy";
 import { createCheckout } from "../paypal";
 
@@ -37,14 +37,16 @@ export const tools = [
   },
 ];
 
-export async function runTool(name, input) {
+export async function runTool(name, input, ctx = {}) {
+  input = input || {};
   if (name === "search_products") {
-    const q = input.query.toLowerCase();
-    const hits = store.products.filter((p) =>
+    const q = String(input.query || "").toLowerCase().slice(0, 200);
+    const products = listProducts();
+    const hits = products.filter((p) =>
       (p.name + " " + p.description).toLowerCase().split(/\s+/).some((w) => q.includes(w) && w.length > 2) ||
       (p.name + p.description).toLowerCase().includes(q)
     );
-    const list = hits.length ? hits : store.products;
+    const list = hits.length ? hits : products;
     return list.map(({ id, name, description, price, stock }) => ({ id, name, description, price, stock }));
   }
 
@@ -57,16 +59,16 @@ export async function runTool(name, input) {
     const verdict = checkDiscount(input.productId, input.qty, input.agreedUnitPrice);
     if (verdict.status === "rejected") return { error: verdict.reason };
 
-    const product = store.products.find((p) => p.id === input.productId);
+    const product = getProduct(input.productId);
     const order = {
-      id: "ord_" + Math.random().toString(36).slice(2, 8),
+      id: newOrderId(),
       productId: product.id,
       productName: product.name,
       qty: input.qty,
       unitPrice: verdict.unitPrice,
       total: verdict.total,
       status: "awaiting_payment",
-      reasoning: input.reasoning,
+      reasoning: String(input.reasoning || "").slice(0, 500),
       paypalOrderId: null,
       checkoutLink: null,
       createdAt: new Date().toISOString(),
@@ -74,14 +76,14 @@ export async function runTool(name, input) {
 
     if (verdict.status === "needs_approval") {
       order.status = "approval_needed";
-      store.orders.unshift(order);
+      addOrder(order);
       return { status: "needs_approval", orderId: order.id, message: "Sent to the owner for approval. The customer will get a link once approved." };
     }
 
-    const { paypalOrderId, link } = await createCheckout(order.id, order.total, `${product.name} x${order.qty}`);
+    const { paypalOrderId, link } = await createCheckout(order.id, order.total, `${product.name} x${order.qty}`, ctx.baseUrl);
     order.paypalOrderId = paypalOrderId;
     order.checkoutLink = link;
-    store.orders.unshift(order);
+    addOrder(order);
     return { status: "ready", orderId: order.id, total: order.total, unitPrice: order.unitPrice, checkoutLink: link };
   }
 

@@ -8,14 +8,21 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
 
-  async function load() {
-    const res = await fetch("/api/orders");
-    setOrders(await res.json());
+  function load() {
+    return fetch("/api/orders")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.statusText))))
+      .then((data) => {
+        if (Array.isArray(data)) setOrders(data);
+      })
+      .catch(() => {});
   }
   useEffect(() => {
-    load();
     const t = setInterval(load, 2000);
-    return () => clearInterval(t);
+    const first = setTimeout(load, 0);
+    return () => {
+      clearInterval(t);
+      clearTimeout(first);
+    };
   }, []);
 
   async function decide(orderId, action) {

@@ -1,7 +1,14 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { tools, runTool } from "./tools";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+export const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
+
+let client;
+function getClient() {
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not set");
+  if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return client;
+}
 
 const SYSTEM = `You are the friendly sales assistant for a small online gift and home shop.
 
@@ -14,13 +21,13 @@ Rules:
 - If check_discount says needs_approval, explain the owner needs to confirm and call create_checkout so it is queued.
 - Be warm, concise (2-4 sentences), and suggest one relevant add-on when natural.`;
 
-export async function runAgent(history) {
+export async function runAgent(history, ctx = {}) {
   const messages = history.map((m) => ({ role: m.role, content: m.content }));
   let checkoutLink = null;
 
   for (let i = 0; i < 6; i++) {
-    const resp = await client.messages.create({
-      model: "claude-sonnet-4-6",
+    const resp = await getClient().messages.create({
+      model: MODEL,
       max_tokens: 1000,
       system: SYSTEM,
       tools,
@@ -39,7 +46,7 @@ export async function runAgent(history) {
       if (block.type !== "tool_use") continue;
       let out;
       try {
-        out = await runTool(block.name, block.input);
+        out = await runTool(block.name, block.input, ctx);
       } catch (e) {
         out = { error: e.message };
       }

@@ -17,9 +17,10 @@ export default function Shop() {
 
   // Check if the buyer just came back from PayPal
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("paid")) {
-      setPaid(true);
-    }
+    const t = setTimeout(() => {
+      if (new URLSearchParams(window.location.search).get("paid")) setPaid(true);
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   // Auto-scroll to the newest message (braces = nothing returned, no error)
