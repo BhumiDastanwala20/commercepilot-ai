@@ -65,6 +65,7 @@ export async function runTool(name, input, ctx = {}) {
       productId: product.id,
       productName: product.name,
       qty: input.qty,
+      listPrice: product.price,
       unitPrice: verdict.unitPrice,
       total: verdict.total,
       status: "awaiting_payment",
@@ -80,7 +81,13 @@ export async function runTool(name, input, ctx = {}) {
       return { status: "needs_approval", orderId: order.id, message: "Sent to the owner for approval. The customer will get a link once approved." };
     }
 
-    const { paypalOrderId, link } = await createCheckout(order.id, order.total, `${product.name} x${order.qty}`, ctx.baseUrl);
+    let paypalOrderId, link;
+    try {
+      ({ paypalOrderId, link } = await createCheckout(order.id, order.total, `${product.name} x${order.qty}`, ctx.baseUrl));
+    } catch (e) {
+      console.error("create_checkout", e);
+      return { error: "Checkout is temporarily unavailable. Apologize and ask the customer to try again shortly." };
+    }
     order.paypalOrderId = paypalOrderId;
     order.checkoutLink = link;
     addOrder(order);

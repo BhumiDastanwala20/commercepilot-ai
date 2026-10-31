@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { tools, runTool } from "./tools";
+import { getOrder, toCustomerOrder } from "../store";
 
 export const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 
@@ -24,6 +25,7 @@ Rules:
 export async function runAgent(history, ctx = {}) {
   const messages = history.map((m) => ({ role: m.role, content: m.content }));
   let checkoutLink = null;
+  let orderId = null;
 
   for (let i = 0; i < 6; i++) {
     const resp = await getClient().messages.create({
@@ -38,7 +40,8 @@ export async function runAgent(history, ctx = {}) {
 
     if (resp.stop_reason !== "tool_use") {
       const reply = resp.content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
-      return { reply, checkoutLink };
+      const order = toCustomerOrder(getOrder(orderId));
+      return { reply: reply || "Here you go!", order, checkoutLink: order?.checkoutLink || checkoutLink };
     }
 
     const results = [];
@@ -51,9 +54,11 @@ export async function runAgent(history, ctx = {}) {
         out = { error: e.message };
       }
       if (out?.checkoutLink) checkoutLink = out.checkoutLink;
+      if (out?.orderId) orderId = out.orderId;
       results.push({ type: "tool_result", tool_use_id: block.id, content: JSON.stringify(out) });
     }
     messages.push({ role: "user", content: results });
   }
-  return { reply: "Sorry, something went wrong. Could you try again?", checkoutLink };
+  const order = toCustomerOrder(getOrder(orderId));
+  return { reply: "Sorry, something went wrong. Could you try again?", order, checkoutLink: order?.checkoutLink || checkoutLink };
 }

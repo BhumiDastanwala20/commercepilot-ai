@@ -1,0 +1,70 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--header-h);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 750;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.ai {
+  color: var(--accent);
+}
+
+.logoMark {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #4338ca);
+  box-shadow: 0 4px 12px rgb(79 70 229 / 0.35);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.link {
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.link:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+@media (max-width: 420px) {
+  .brand > span:last-child {
+    display: none;
+  }
+}

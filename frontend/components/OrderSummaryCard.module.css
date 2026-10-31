@@ -1,0 +1,178 @@
+.card {
+  width: min(360px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: pop 0.3s var(--ease);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.heading {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 12px 14px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.itemInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.itemName {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.itemMeta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.strike {
+  margin-left: 6px;
+  color: var(--text-subtle);
+}
+
+.lineTotal {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.totals {
+  margin: 0;
+  padding: 8px 14px 12px;
+  font-size: 14px;
+}
+
+.totals div {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+
+.totals dt {
+  color: var(--text-muted);
+}
+
+.totals dd {
+  margin: 0;
+}
+
+.saving dt,
+.saving dd {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.grand {
+  border-top: 1px dashed var(--border-strong);
+  margin-top: 6px;
+  padding-top: 8px !important;
+}
+
+.grand dt,
+.grand dd {
+  color: var(--text);
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.currency {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-subtle);
+}
+
+.foot {
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wordmark {
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.pay {
+  color: var(--paypal-navy);
+}
+
+.pal {
+  color: var(--paypal-blue);
+}
+
+.note {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-subtle);
+}
+
+.notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.noticeWarning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.noticeSuccess {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.noticeDanger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.orderId {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+}

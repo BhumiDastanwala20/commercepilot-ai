@@ -1,0 +1,138 @@
+.page {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  gap: 24px;
+  align-items: start;
+}
+
+.catalogHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+}
+
+.sub {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  height: 42px;
+  min-width: 220px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-subtle);
+}
+
+.search:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: var(--text);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.filter {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.filter:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.filter:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.filterActive,
+.filterActive:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 32px 0;
+}
+
+.chatCol {
+  position: sticky;
+  top: calc(var(--header-h) + 16px);
+  height: calc(100vh - var(--header-h) - 32px);
+  min-height: 480px;
+  scroll-margin-top: calc(var(--header-h) + 12px);
+}
+
+@media (max-width: 1023px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .chatCol {
+    position: static;
+    order: -1;
+    height: min(72vh, 640px);
+    min-height: 440px;
+  }
+}
+
+@media (max-width: 560px) {
+  .search {
+    min-width: 0;
+    width: 100%;
+  }
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+}

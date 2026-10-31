@@ -69,3 +69,31 @@ export function newOrderId() {
 export function getRules() {
   return db.rules;
 }
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+// Customer-safe view of an order (no AI reasoning or internal notes).
+export function toCustomerOrder(o) {
+  if (!o) return null;
+  const listPrice = o.listPrice ?? getProduct(o.productId)?.price ?? o.unitPrice;
+  const items = (o.items || [{ productId: o.productId, name: o.productName, qty: o.qty, listPrice, unitPrice: o.unitPrice }]).map((i) => ({
+    ...i,
+    category: getProduct(i.productId)?.category || null,
+  }));
+  const subtotal = round2(items.reduce((s, i) => s + i.listPrice * i.qty, 0));
+  const discount = round2(Math.max(0, subtotal - o.total));
+  return {
+    id: o.id,
+    items,
+    subtotal,
+    discount,
+    discountPercent: subtotal > 0 ? Math.round((discount / subtotal) * 1000) / 10 : 0,
+    total: o.total,
+    currency: "USD",
+    status: o.status,
+    checkoutLink: o.status === "awaiting_payment" ? o.checkoutLink : null,
+    paypalOrderId: o.paypalOrderId || null,
+    createdAt: o.createdAt,
+    paidAt: o.paidAt || null,
+  };
+}

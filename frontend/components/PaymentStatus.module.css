@@ -1,0 +1,112 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+
+.warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 25%, transparent);
+}
+
+.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+.dialog {
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.dialog::backdrop {
+  background: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.dialog[open] {
+  animation: dialogIn 0.3s var(--ease);
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  margin: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.summary {
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.ids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.ids div {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--text-subtle);
+}
+
+.ids code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}

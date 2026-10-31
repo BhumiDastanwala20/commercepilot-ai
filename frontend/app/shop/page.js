@@ -1,146 +1,110 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import ChatPanel from "@/components/ChatPanel";
+import ProductCard from "@/components/ProductCard";
+import PaymentStatus from "@/components/PaymentStatus";
+import useProducts from "@/components/useProducts";
+import styles from "./shop.module.css";
 
-export default function Shop() {
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content:
-        "Hi! Looking for something today? I can help you find it and sort out the best price.",
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [links, setLinks] = useState({});
-  const [paid, setPaid] = useState(false);
-  const bottom = useRef(null);
+// Handles links like /shop?ask=mug from the home page by prefilling the chat once.
+function AskFromUrl({ products, onAsk }) {
+  const params = useSearchParams();
+  const askId = params.get("ask");
+  const done = useRef(false);
 
-  // Check if the buyer just came back from PayPal
   useEffect(() => {
-    const t = setTimeout(() => {
-      if (new URLSearchParams(window.location.search).get("paid")) setPaid(true);
-    }, 0);
-    return () => clearTimeout(t);
+    if (done.current || !askId || products.length === 0) return;
+    const p = products.find((x) => x.id === askId);
+    if (p) {
+      done.current = true;
+      onAsk(p);
+    }
+  }, [askId, products, onAsk]);
+
+  return null;
+}
+
+export default function ShopPage() {
+  const { products, status } = useProducts();
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("All");
+  const chatRef = useRef(null);
+  const chatColRef = useRef(null);
+
+  const categories = useMemo(() => ["All", ...new Set(products.map((p) => p.category).filter(Boolean))], [products]);
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return products.filter(
+      (p) =>
+        (category === "All" || p.category === category) &&
+        (!q || p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q))
+    );
+  }, [products, query, category]);
+
+  const onAsk = useCallback((p) => {
+    chatRef.current?.prefill(`Tell me about the ${p.name}. Is there a deal if I buy a few?`);
+    // On stacked (mobile) layouts the chat is off-screen, so bring it into view.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      chatColRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }, []);
 
-  // Auto-scroll to the newest message (braces = nothing returned, no error)
-  useEffect(() => {
-    bottom.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
-  async function send() {
-    if (!input.trim() || loading) return;
-
-    const next = [...messages, { role: "user", content: input }];
-    setMessages(next);
-    setInput("");
-    setLoading(true);
-
-    try {
-      // The API needs history to start with a user message,
-      // so skip the first assistant greeting
-      const history = next.filter((_, i) => i > 0);
-
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
-      });
-      const data = await res.json();
-
-      const idx = next.length; // index of the assistant reply we are adding
-      setMessages([...next, { role: "assistant", content: data.reply }]);
-      if (data.checkoutLink) {
-        setLinks((l) => ({ ...l, [idx]: data.checkoutLink }));
-      }
-    } catch (e) {
-      setMessages([
-        ...next,
-        { role: "assistant", content: "Sorry, something went wrong. Please try again." },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <main style={{ maxWidth: 640, margin: "0 auto", padding: 20, fontFamily: "system-ui" }}>
-      <h1>CommercePilot Shop</h1>
+    <div className={`container ${styles.page}`}>
+      <Suspense fallback={null}>
+        <PaymentStatus />
+        <AskFromUrl products={products} onAsk={onAsk} />
+      </Suspense>
 
-      {paid && (
-        <div style={{ background: "#d1fae5", padding: 12, borderRadius: 8, marginBottom: 12 }}>
-          Payment received. Thank you! Your order is confirmed.
-        </div>
-      )}
-
-      <div
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: 12,
-          height: 480,
-          overflowY: "auto",
-          padding: 12,
-        }}
-      >
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            style={{ textAlign: m.role === "user" ? "right" : "left", margin: "8px 0" }}
-          >
-            <span
-              style={{
-                display: "inline-block",
-                padding: "8px 12px",
-                borderRadius: 12,
-                maxWidth: "85%",
-                whiteSpace: "pre-wrap",
-                background: m.role === "user" ? "#2563eb" : "#f1f5f9",
-                color: m.role === "user" ? "#fff" : "#111",
-              }}
-            >
-              {m.content}
-            </span>
-
-            {links[i] && (
-              <div style={{ marginTop: 6 }}>
-                <a
-                  href={links[i]}
-                  style={{
-                    background: "#ffc439",
-                    padding: "8px 16px",
-                    borderRadius: 20,
-                    fontWeight: 700,
-                    color: "#111",
-                    textDecoration: "none",
-                  }}
-                >
-                  Pay with PayPal
-                </a>
-              </div>
-            )}
+      <div className={styles.layout}>
+        <section className={styles.catalog} aria-labelledby="catalog-title">
+          <div className={styles.catalogHead}>
+            <div>
+              <h1 id="catalog-title" className={styles.title}>
+                Shop
+              </h1>
+              <p className={styles.sub}>Browse the catalog, or ask the assistant for recommendations and bulk deals.</p>
+            </div>
+            <label className={styles.search}>
+              <span className="sr-only">Search products</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.5-3.5" />
+              </svg>
+              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search products" />
+            </label>
           </div>
-        ))}
 
-        {loading && <div style={{ color: "#888" }}>Typing...</div>}
-        <div ref={bottom} />
-      </div>
+          <div className={styles.filters} role="group" aria-label="Filter by category">
+            {categories.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`${styles.filter} ${category === c ? styles.filterActive : ""}`}
+                aria-pressed={category === c}
+                onClick={() => setCategory(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder="Ask about a product..."
-          style={{ flex: 1, padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-        />
-        <button
-          onClick={send}
-          disabled={loading}
-          style={{ padding: "10px 18px", borderRadius: 8 }}
-        >
-          Send
-        </button>
+          {status === "error" && <p role="alert">Could not load products. Please refresh the page.</p>}
+          <div className={styles.grid} aria-busy={status === "loading"}>
+            {status === "loading"
+              ? Array.from({ length: 6 }, (_, i) => <div key={i} className="skeleton" style={{ height: 320 }} />)
+              : visible.map((p) => <ProductCard key={p.id} product={p} onAsk={onAsk} />)}
+          </div>
+          {status === "ready" && visible.length === 0 && (
+            <p className={styles.empty}>No products match. Try another search, or ask the assistant.</p>
+          )}
+        </section>
+
+        <aside ref={chatColRef} className={styles.chatCol}>
+          <ChatPanel ref={chatRef} />
+        </aside>
       </div>
-    </main>
+    </div>
   );
 }
